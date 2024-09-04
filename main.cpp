@@ -82,8 +82,8 @@ public:
             {
 
                 Particle &p2 = particles.at(k);
- const float vel_x = p1.get_velocity_x(dt) - p2.get_velocity_x(dt);
-                    const float vel_y = p1.get_velocity_y(dt) - p2.get_velocity_y(dt);
+                    const float vel_x = p1.get_x() - p2.get_x();
+                    const float vel_y = p1.get_y() - p2.get_y();
 
                     const float dist2 = vel_x * vel_x + vel_y * vel_y;
                     const float min_dist = p1.get_radius() + p2.get_radius();
