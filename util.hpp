@@ -23,3 +23,27 @@ namespace utl
         }
 
 }
+
+class Stick
+{
+public:
+    Vector2f a;
+    Vector2f b;
+    float length;
+
+    Stick(Vector2f a, Vector2f b, float length)
+    {
+        this->a = a;
+        this->b = b;
+        this->length = length;
+    }
+
+    ~Stick()
+    {
+    }
+    
+    void draw()
+    {
+        DrawLineEx({a.x, a.y}, {b.x, b.y}, 5.f, GRAY);
+    }
+};
