@@ -1,7 +1,7 @@
 #include "particle.h"
 #include "raylib.h"
 
-Particle::Particle(float x, float y, float mass, float radius)
+Particle::Particle(float x, float y, float radius, float mass)
 {
     this->position.x = x;
     this->position.y = y;
@@ -14,7 +14,18 @@ Particle::Particle(float x, float y, float mass, float radius)
     this->bounce = .9f;
 }
 
-Particle::Particle(float x, float y, float mass, float radius, float bounce)
+Particle::Particle(Vector2 position, float radius, float mass)
+{
+    this->position = position;
+    this->position_prev= position;
+    this->acceleration.x = 0;
+    this->acceleration.y = 0;
+    this->mass = mass;
+    this->radius = radius;
+    this->bounce = .9f;
+}
+
+Particle::Particle(float x, float y, float radius, float mass, float bounce)
 {
     this->position.x = x;
     this->position.y = y;
@@ -46,8 +57,8 @@ void Particle::update(float dt)
 
 void Particle::draw()
 {
-    DrawCircle(position.x, position.y, radius, BLACK);
-    DrawCircle(position.x, position.y, radius - 0.5f, Color{81, 198, 232, 255});
+    //DrawCircle(position.x, position.y, radius, BLACK);
+    DrawCircle(position.x, position.y, radius, Color{81, 198, 232, 255});
 
 }
 
@@ -81,7 +92,7 @@ float Particle::get_velocity_y(float dt)
     return (position.y - position_prev.y) / dt;
 }
 
-Vector2f Particle::get_direction(float dt)
+Vector2 Particle::get_direction(float dt)
 {
     return {this->get_velocity_x(dt), this->get_velocity_y(dt)};
 }
@@ -174,7 +185,7 @@ void Particle::set_y(float y)
     this->position.y = y;
 }
 
-Vector2f Particle::get_position()
+Vector2 Particle::get_position()
 {
     return this->position;
 }
