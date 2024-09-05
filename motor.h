@@ -4,10 +4,10 @@
 #include "stick.h"
 #include <vector>
 
-class Physix
+class Motor
 {
 public:
-    Physix(float force_x, float force_y);
+    Motor(float force_x, float force_y);
 
     std::vector<Particle> particles;
     std::vector<Stick> sticks;

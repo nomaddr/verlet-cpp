@@ -4,7 +4,7 @@
 #include <vector>
 #include "particle.h"
 #include "stick.h"
-#include "physix.h"
+#include "motor.h"
 
 
 int main()
@@ -22,7 +22,7 @@ int main()
     Particle p1(600, 400, 10.f, default_mass);
     Particle p2(400, 400, 10.f, default_mass);
     Stick stick1({p1.get_x(), p1.get_y()}, {p2.get_x(), p2.get_y()}, Vector2Distance(p1.get_position(), p2.get_position()));
-    Physix motor(0.f, 1000.f);
+    Motor motor(0.f, 1000.f);
 
     motor.particles.push_back(p1);
 

@@ -2,15 +2,15 @@
 #include <iostream>
 #include "particle.h"
 #include "stick.h"
-#include "physix.h"
+#include "motor.h"
 
-Physix::Physix(float force_x, float force_y)
+Motor::Motor(float force_x, float force_y)
 {
     this->force_x = force_x;
     this->force_y = force_y;
 }
 
-void Physix::update(float dt)
+void Motor::update(float dt)
 {
     apply_force(force_x, force_y);
     check_collision_particles(dt);
@@ -18,7 +18,7 @@ void Physix::update(float dt)
     update_positions(dt);
 }
 
-void Physix::draw()
+void Motor::draw()
 {
     for (Stick &s : sticks)
     {
@@ -31,7 +31,7 @@ void Physix::draw()
     draw_debug();
 }
 
-void Physix::update_positions(float dt)
+void Motor::update_positions(float dt)
 {
     for (Particle &p : particles)
     {
@@ -40,7 +40,7 @@ void Physix::update_positions(float dt)
     }
 }
 
-void Physix::apply_force(float force_x, float force_y)
+void Motor::apply_force(float force_x, float force_y)
 {
     for (Particle &p : particles)
     {
@@ -48,7 +48,7 @@ void Physix::apply_force(float force_x, float force_y)
     }
 }
 
-void Physix::apply_random_force()
+void Motor::apply_random_force()
 {
     SetRandomSeed(GetTime());
     for (Particle &p : particles)
@@ -57,19 +57,19 @@ void Physix::apply_random_force()
     }
 }
 
-void Physix::spawn_particle(float x, float y, float radius, float mass)
+void Motor::spawn_particle(float x, float y, float radius, float mass)
 {
     Particle particle(x, y, radius, mass);
     particles.push_back(particle);
 }
 
-void Physix::spawn_stick(Vector2 a, Vector2 b, float length)
+void Motor::spawn_stick(Vector2 a, Vector2 b, float length)
 {
     Stick stick(a, b, length);
     sticks.push_back(stick);
 }
 
-void Physix::check_collision_particles(float dt)
+void Motor::check_collision_particles(float dt)
 {
     const float response_coef = 0.75f; // 0.75f;
     const int particle_count = particles.size();
@@ -117,7 +117,7 @@ void Physix::check_collision_particles(float dt)
     }
 }
 
-// void Physix::applyConstraint()
+// void Motor::applyConstraint()
 // {
 //     const Vector2 position = {800.0f, 450.0f};
 //     const float radius = 400.0f;
@@ -134,7 +134,7 @@ void Physix::check_collision_particles(float dt)
 //     }
 // }
 
-void Physix::draw_debug()
+void Motor::draw_debug()
 {
     Color dbg_col = ORANGE;
     DrawRectangleLines(10, 10, 200, 200, dbg_col);
