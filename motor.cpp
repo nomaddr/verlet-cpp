@@ -13,6 +13,7 @@ Motor::Motor(float force_x, float force_y)
 void Motor::update(float dt)
 {
     apply_force(force_x, force_y);
+    update_sticks();
     check_collision_particles(dt);
     // applyConstraint();
     update_positions(dt);
@@ -20,23 +21,35 @@ void Motor::update(float dt)
 
 void Motor::draw()
 {
-    for (Stick &s : sticks)
-    {
-        s.draw();
-    }
+    
     for (Particle &p : particles)
     {
         p.draw();
+    }
+    for (Stick &s : sticks)
+    {
+        s.draw();
     }
     draw_debug();
 }
 
 void Motor::update_positions(float dt)
 {
+
     for (Particle &p : particles)
     {
         p.update(dt);
         p.constrain_rectangle(GetScreenWidth(), GetScreenHeight());
+    }
+
+}
+
+void Motor::update_sticks()
+{
+    
+    for (Stick &s : sticks)
+    {
+        s.update();
     }
 }
 
@@ -63,7 +76,7 @@ void Motor::spawn_particle(float x, float y, float radius, float mass)
     particles.push_back(particle);
 }
 
-void Motor::spawn_stick(Vector2 a, Vector2 b, float length)
+void Motor::spawn_stick(Particle* a, Particle* b, float length)
 {
     Stick stick(a, b, length);
     sticks.push_back(stick);
@@ -106,12 +119,6 @@ void Motor::check_collision_particles(float dt)
                 pos2.y = pos2.y + n_y * (mass_ratio_1 * delta);
                 p1.set_position(pos1.x, pos1.y);
                 p2.set_position(pos2.x, pos2.y);
-                /*
-                p1.set_x(pos1.x - n_x * (mass_ratio_2 * delta));
-                p1.set_y(pos1.y - n_y * (mass_ratio_2 * delta));
-                p2.set_x(pos2.x + n_x * (mass_ratio_1 * delta));
-                p2.set_y(pos2.y + n_y * (mass_ratio_1 * delta));
-                */
             }
         }
     }
@@ -142,4 +149,10 @@ void Motor::draw_debug()
     DrawText(std::to_string(particles.size()).c_str(), 100, 15, 18, dbg_col);
     DrawText("FPS:", 15, 35, 18, dbg_col);
     DrawText(std::to_string(GetFPS()).c_str(), 100, 35, 18, dbg_col);
+
+    // Draw Particle IDs
+    for (int i = 0; i < particles.size(); i++)
+    {
+        DrawText(std::to_string(i).c_str(), particles[i].get_x(), particles[i].get_y(), 2.f, BLACK);
+    }
 }

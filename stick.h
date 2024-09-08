@@ -1,31 +1,18 @@
-#pragma once 
+#pragma once
 
+#include "particle.h"
 
 class Stick
 {
 public:
-    Vector2 a;
-    Vector2 b;
-    float length;
 
-    Stick(Vector2 a, Vector2 b, float length)
-    {
-        this->a = a;
-        this->b = b;
-        this->length = length;
-    }
-
-    ~Stick()
-    {
-    }
-
-    void update()
-    {
-        
-    }
+    Stick(Particle* a, Particle* b, float length);
+    ~Stick();
+    void update();
+    void draw();
     
-    void draw()
-    {
-        DrawLineEx({a.x, a.y}, {b.x, b.y}, 5.f, GRAY);
-    }
+private:
+    Particle* a;
+    Particle* b;
+    float length;
 };

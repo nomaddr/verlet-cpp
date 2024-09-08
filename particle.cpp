@@ -1,6 +1,8 @@
 #include "particle.h"
 #include "raylib.h"
 
+Particle::Particle() {};
+
 Particle::Particle(float x, float y, float radius, float mass)
 {
     this->position.x = x;
@@ -69,7 +71,7 @@ void Particle::accelerate(float force_x, float force_y)
     acceleration.y = force_y / mass;
 }
 
-// set velocity by changing previous (x, y)
+// set velocity by changing previous (x, y)     TODO: FIX
 void Particle::set_velocity(float v_x, float v_y, float dt)
 {
     position_prev.x = position.x - (v_x * dt);

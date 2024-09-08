@@ -7,6 +7,7 @@
 class Particle 
 {
 public:
+    Particle();
     Particle(float x, float y, float radius, float mass);
     Particle(Vector2 position, float radius, float mass);
     Particle(float x, float y, float radius, float mass, float bounce);
