@@ -6,13 +6,13 @@ class Stick
 {
 public:
 
-    Stick(Particle* a, Particle* b, float length);
+    Stick(int particle_a_index, int particle_b_index, float length);
     ~Stick();
-    void update();
-    void draw();
+    void update(std::vector<Particle>& particles);
+    void draw(std::vector<Particle>& particles);
     
 private:
-    Particle* a;
-    Particle* b;
+    int particle_a_index;
+    int particle_b_index;
     float length;
 };

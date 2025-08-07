@@ -71,9 +71,14 @@ void Particle::accelerate(float force_x, float force_y)
     acceleration.y = force_y / mass;
 }
 
-// set velocity by changing previous (x, y)     TODO: FIX
+// Set velocity by adjusting previous position for Verlet integration
 void Particle::set_velocity(float v_x, float v_y, float dt)
 {
+    // Ensure dt is not zero to avoid invalid calculations
+    if (dt < 0.001f) {
+        return;
+    }
+    
     position_prev.x = position.x - (v_x * dt);
     position_prev.y = position.y - (v_y * dt);
 }

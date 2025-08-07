@@ -43,10 +43,9 @@ int main()
 
     motor.particles.push_back(p1);
     motor.particles.push_back(p2);
-    Stick stick1(&motor.particles[0], &motor.particles[1], 50.0f); // Vector2Distance(p1.get_position(), p2.get_position()));
+    // Create stick using indices instead of pointers (safe from vector reallocation)
+    motor.spawn_stick(0, 1, 50.0f); // Connect first two particles
     //motor.particles.push_back(player);
-
-    motor.sticks.push_back(stick1);
 
     SetTargetFPS(60);
 

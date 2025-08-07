@@ -1,11 +1,12 @@
 #include "stick.h"
 #include "particle.h"
-#include "math.h"
+#include "raylib.h"
+#include <cmath>
 
-    Stick::Stick(Particle* a, Particle* b, float length)
+    Stick::Stick(int particle_a_index, int particle_b_index, float length)
     {
-        this->a = a;
-        this->b = b;
+        this->particle_a_index = particle_a_index;
+        this->particle_b_index = particle_b_index;
         this->length = length;
     }
 
@@ -13,26 +14,51 @@
     {
     }
 
-    void Stick::update()
+    void Stick::update(std::vector<Particle>& particles)
     {
-        float dx = this->b->get_x() - this->a->get_x();
-        float dy = this->b->get_y() - this->a->get_y();
+        // Bounds checking to prevent segfault
+        if (particle_a_index < 0 || particle_a_index >= particles.size() ||
+            particle_b_index < 0 || particle_b_index >= particles.size()) {
+            return; // Invalid indices, skip this stick
+        }
+        
+        Particle& a = particles[particle_a_index];
+        Particle& b = particles[particle_b_index];
+        
+        float dx = b.get_x() - a.get_x();
+        float dy = b.get_y() - a.get_y();
         float dist = sqrtf(dx * dx + dy * dy);
+        
+        // Avoid division by zero
+        if (dist < 0.001f) {
+            return;
+        }
+        
         float diff = this->length - dist;
-        float perc = (dist / diff) / 2;
+        // Fixed constraint math: percentage of correction needed
+        float perc = diff / (2.0f * dist);
 
         float offset_x = dx * perc;
         float offset_y = dy * perc;
 
-        this->a->set_x(this->a->get_x() - offset_x);
-        this->a->set_y(this->a->get_y() - offset_y);
-        this->b->set_x(this->b->get_x() + offset_x);
-        this->b->set_y(this->b->get_y() + offset_y);
+        a.set_x(a.get_x() - offset_x);
+        a.set_y(a.get_y() - offset_y);
+        b.set_x(b.get_x() + offset_x);
+        b.set_y(b.get_y() + offset_y);
     }
 
-    void Stick::draw()
+    void Stick::draw(std::vector<Particle>& particles)
     {
-        DrawLineEx({a->get_x(), a->get_y()}, {b->get_x(), b->get_y()}, 7.5f, PURPLE);
-        DrawText("PARTICLE A", a->get_x(), a->get_y(), 4.f, RAYWHITE);
+        // Bounds checking to prevent segfault
+        if (particle_a_index < 0 || particle_a_index >= particles.size() ||
+            particle_b_index < 0 || particle_b_index >= particles.size()) {
+            return; // Invalid indices, skip drawing this stick
+        }
+        
+        Particle& a = particles[particle_a_index];
+        Particle& b = particles[particle_b_index];
+        
+        DrawLineEx({a.get_x(), a.get_y()}, {b.get_x(), b.get_y()}, 7.5f, PURPLE);
+        DrawText("PARTICLE A", a.get_x(), a.get_y(), 4.f, RAYWHITE);
     }
 

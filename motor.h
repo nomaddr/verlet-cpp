@@ -21,7 +21,7 @@ public:
     void apply_force(float force_x, float force_y);
     void apply_random_force();
     void spawn_particle(float x, float y, float radius, float mass);
-    void spawn_stick(Particle* a, Particle* b, float length);
+    void spawn_stick(int particle_a_index, int particle_b_index, float length);
     void check_collision_particles(float dt);
     void draw_debug();
 
