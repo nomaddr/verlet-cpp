@@ -4,7 +4,7 @@
 # Project settings
 PROJECT_NAME = verlz
 CXX = g++
-CXXFLAGS = -std=c++14 -Wall -Wextra -O2
+CXXFLAGS = -std=c++14 -Wall -Wextra -Wshadow -O2
 
 # Source files
 SOURCES = main.cpp particle.cpp stick.cpp motor.cpp

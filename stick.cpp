@@ -59,6 +59,6 @@
         Particle& b = particles[particle_b_index];
         
         DrawLineEx({a.get_x(), a.get_y()}, {b.get_x(), b.get_y()}, 7.5f, PURPLE);
-        DrawText("PARTICLE A", a.get_x(), a.get_y(), 4.f, RAYWHITE);
+        DrawText("PARTICLE A", (int)a.get_x(), (int)a.get_y(), 4, RAYWHITE);
     }
 
