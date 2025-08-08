@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 Motor::Motor(float force_x, float force_y) {
   this->force_x = force_x;
@@ -12,20 +13,24 @@ Motor::Motor(float force_x, float force_y) {
 }
 
 void Motor::update(float dt) {
-  // Correct physics update order:
-  // 1. Apply forces to particles
+  // 1) Apply forces (a = F/m)
   apply_force(force_x, force_y);
 
-  // 2. Update particle positions using Verlet integration
+  // 2) Integrate positions (Verlet)
   update_positions(dt);
 
-  // 3. Apply constraints (sticks) to maintain structural integrity
-  update_sticks();
+  // 3) Iteratively solve constraints and collisions for stability
+  const int iterations = 3; // tweak 2..6 depending on stability desired
+  for (int i = 0; i < iterations; ++i) {
+    update_sticks();
+    check_collision_particles(dt);
+    // Re-apply world bounds each iteration for robust corner handling
+    for (Particle &p : particles) {
+      p.constrain_rectangle(GetScreenWidth(), GetScreenHeight());
+    }
+  }
 
-  // 4. Resolve collisions between particles
-  check_collision_particles(dt);
-
-  // applyConstraint(); // TODO: Implement boundary constraints
+  // applyConstraint(); // TODO: Circle/world constraints if needed
 }
 
 void Motor::draw() {
@@ -101,7 +106,7 @@ void Motor::spawn_stick(int particle_a_index, int particle_b_index,
 }
 
 void Motor::check_collision_particles(float dt) {
-  const float response_coef = 0.75f;
+  const float response_coef = 1.0f;
   const int particle_count = particles.size();
 
   // Early exit if not enough particles for collision
@@ -154,6 +159,40 @@ void Motor::check_collision_particles(float dt) {
 
         p1.set_position(pos1.x, pos1.y);
         p2.set_position(pos2.x, pos2.y);
+
+        // Verlet-friendly bounce: adjust previous-position-encoded velocities
+        if (dt > 1e-6f) {
+          // Current per-second velocities inferred from position and prev
+          Vector2 v1_ps = p1.get_velocity(dt);
+          Vector2 v2_ps = p2.get_velocity(dt);
+          // Convert to per-step velocities (displacement per step)
+          Vector2 v1_step = { v1_ps.x * dt, v1_ps.y * dt };
+          Vector2 v2_step = { v2_ps.x * dt, v2_ps.y * dt };
+
+          // Relative velocity along collision normal (per-step)
+          float relN = (v1_step.x - v2_step.x) * n_x + (v1_step.y - v2_step.y) * n_y;
+          if (relN < 0.0f) { // approaching along normal
+            float e = std::min(p1.get_bounce(), p2.get_bounce());
+            float m1 = p1.get_mass();
+            float m2 = p2.get_mass();
+            float invMassSum = (1.0f / m1) + (1.0f / m2);
+            if (invMassSum > 0.0f) {
+              float j = -(1.0f + e) * relN / invMassSum; // impulse scalar (per-step)
+              float jnx = j * n_x;
+              float jny = j * n_y;
+              v1_step.x += jnx / m1;
+              v1_step.y += jny / m1;
+              v2_step.x -= jnx / m2;
+              v2_step.y -= jny / m2;
+
+              // Back to per-second velocities and write to prev via set_velocity
+              Vector2 v1_ps_new = { v1_step.x / dt, v1_step.y / dt };
+              Vector2 v2_ps_new = { v2_step.x / dt, v2_step.y / dt };
+              p1.set_velocity(v1_ps_new.x, v1_ps_new.y, dt);
+              p2.set_velocity(v2_ps_new.x, v2_ps_new.y, dt);
+            }
+          }
+        }
       }
     }
   }

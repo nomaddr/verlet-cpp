@@ -1,8 +1,8 @@
 #include "motor.h"
 #include "particle.h"
 #include "stick.h"
-#include <iostream>
 #include <ctime>
+#include <iostream>
 #include <raylib.h>
 #include <raymath.h>
 #include <vector>
@@ -36,17 +36,11 @@ int main() {
 
   float dt;
   float default_mass = 1.0f;
+  float default_radius = 5.0f;
   // Vector2 origin = {screenWidth / 2, screenHeight / 2};
-  Particle player({screenWidth / 2, screenHeight / 2}, 30.f, 3.f);
-  Particle p1(600, 400, 10.f, default_mass);
-  Particle p2(400, 400, 10.f, default_mass);
-  Motor motor(0.f, 1000.f);
+  Particle player({screenWidth / 2, screenHeight / 2}, 5.f, 2.f);
+  Motor motor(0.f, 500.f);
 
-  motor.particles.push_back(p1);
-  motor.particles.push_back(p2);
-  // Create stick using indices instead of pointers (safe from vector
-  // reallocation)
-  motor.spawn_stick(0, 1, 50.0f); // Connect first two particles
   motor.particles.push_back(player);
 
   SetTargetFPS(60);
@@ -64,8 +58,9 @@ int main() {
       // player.add_velocity(5000.f, dt);
       // player.accelerate();
     }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-      motor.spawn_particle(GetMouseX(), GetMouseY(), 5.f, default_mass);
+    if (IsKeyDown(KEY_G)) {
+      motor.spawn_particle(GetMouseX(), GetMouseY(), default_radius,
+                           default_mass);
     }
 
     if (IsKeyDown(KEY_SPACE)) {

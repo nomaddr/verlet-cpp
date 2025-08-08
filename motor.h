@@ -25,5 +25,7 @@ public:
     void check_collision_particles(float dt);
     void draw_debug();
 
+private:
+    void narrowPhaseResolve(int i, int j, float dt, float response_coef);
     // void applyConstraint()
 };
