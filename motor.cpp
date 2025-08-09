@@ -2,10 +2,10 @@
 #include "particle.h"
 #include "raylib.h"
 #include "stick.h"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <algorithm>
 
 Motor::Motor(float force_x, float force_y) {
   this->force_x = force_x;
@@ -20,13 +20,20 @@ void Motor::update(float dt) {
   update_positions(dt);
 
   // 3) Iteratively solve constraints and collisions for stability
-  const int iterations = 3; // tweak 2..6 depending on stability desired
+  const int iterations = 6; // tweak 2..6 depending on stability desired
   for (int i = 0; i < iterations; ++i) {
     update_sticks();
     check_collision_particles(dt);
     // Re-apply world bounds each iteration for robust corner handling
     for (Particle &p : particles) {
       p.constrain_rectangle(GetScreenWidth(), GetScreenHeight());
+    }
+    // Small velocity damping to reduce jitter and endless side motion
+    for (Particle &p : particles) {
+      Vector2 v = p.get_velocity(dt);
+      v.x *= 0.98f;
+      v.y *= 0.98f;
+      p.set_velocity(v.x, v.y, dt);
     }
   }
 
@@ -45,10 +52,8 @@ void Motor::draw() {
 }
 
 void Motor::update_positions(float dt) {
-
   for (Particle &p : particles) {
     p.update(dt);
-    p.constrain_rectangle(GetScreenWidth(), GetScreenHeight());
   }
 }
 
@@ -129,13 +134,17 @@ void Motor::check_collision_particles(float dt) {
       if (dist2 < min_dist * min_dist) {
         const float dist = sqrt(dist2);
 
-        // Avoid division by zero
-        if (dist < 0.001f) {
-          continue;
+        // Avoid division by zero and provide fallback normal
+        float n_x, n_y;
+        float dist_safe = dist;
+        if (dist < 1e-6f) {
+          n_x = 1.0f;
+          n_y = 0.0f; // arbitrary
+          dist_safe = 1e-6f;
+        } else {
+          n_x = vel_x / dist;
+          n_y = vel_y / dist;
         }
-
-        const float n_x = vel_x / dist;
-        const float n_y = vel_y / dist;
 
         // Use actual mass for proper physics response
         const float total_mass = p1.get_mass() + p2.get_mass();
@@ -144,40 +153,44 @@ void Motor::check_collision_particles(float dt) {
         const float mass_ratio_2 =
             p1.get_mass() / total_mass; // p2 moves based on p1's mass
 
-        const float overlap = min_dist - dist;
+        const float overlap = min_dist - dist_safe;
         const float separation = overlap * response_coef;
+
+        // Sample velocities BEFORE changing them with new prev positions
+        Vector2 v1_ps = p1.get_velocity(dt);
+        Vector2 v2_ps = p2.get_velocity(dt);
 
         // Update positions based on mass ratios
         Vector2 pos1 = p1.get_position();
         Vector2 pos2 = p2.get_position();
 
         // Move particles apart proportional to their mass ratios
-        pos1.x = pos1.x - n_x * (mass_ratio_1 * separation);
-        pos1.y = pos1.y - n_y * (mass_ratio_1 * separation);
-        pos2.x = pos2.x + n_x * (mass_ratio_2 * separation);
-        pos2.y = pos2.y + n_y * (mass_ratio_2 * separation);
+        pos1.x = pos1.x + n_x * (mass_ratio_1 * separation);
+        pos1.y = pos1.y + n_y * (mass_ratio_1 * separation);
+        pos2.x = pos2.x - n_x * (mass_ratio_2 * separation);
+        pos2.y = pos2.y - n_y * (mass_ratio_2 * separation);
 
         p1.set_position(pos1.x, pos1.y);
         p2.set_position(pos2.x, pos2.y);
 
         // Verlet-friendly bounce: adjust previous-position-encoded velocities
         if (dt > 1e-6f) {
-          // Current per-second velocities inferred from position and prev
-          Vector2 v1_ps = p1.get_velocity(dt);
-          Vector2 v2_ps = p2.get_velocity(dt);
+          // Use pre-correction velocities captured above
           // Convert to per-step velocities (displacement per step)
-          Vector2 v1_step = { v1_ps.x * dt, v1_ps.y * dt };
-          Vector2 v2_step = { v2_ps.x * dt, v2_ps.y * dt };
+          Vector2 v1_step = {v1_ps.x * dt, v1_ps.y * dt};
+          Vector2 v2_step = {v2_ps.x * dt, v2_ps.y * dt};
 
           // Relative velocity along collision normal (per-step)
-          float relN = (v1_step.x - v2_step.x) * n_x + (v1_step.y - v2_step.y) * n_y;
+          float relN =
+              (v1_step.x - v2_step.x) * n_x + (v1_step.y - v2_step.y) * n_y;
           if (relN < 0.0f) { // approaching along normal
             float e = std::min(p1.get_bounce(), p2.get_bounce());
             float m1 = p1.get_mass();
             float m2 = p2.get_mass();
             float invMassSum = (1.0f / m1) + (1.0f / m2);
             if (invMassSum > 0.0f) {
-              float j = -(1.0f + e) * relN / invMassSum; // impulse scalar (per-step)
+              float j =
+                  -(1.0f + e) * relN / invMassSum; // impulse scalar (per-step)
               float jnx = j * n_x;
               float jny = j * n_y;
               v1_step.x += jnx / m1;
@@ -185,9 +198,10 @@ void Motor::check_collision_particles(float dt) {
               v2_step.x -= jnx / m2;
               v2_step.y -= jny / m2;
 
-              // Back to per-second velocities and write to prev via set_velocity
-              Vector2 v1_ps_new = { v1_step.x / dt, v1_step.y / dt };
-              Vector2 v2_ps_new = { v2_step.x / dt, v2_step.y / dt };
+              // Back to per-second velocities and write to prev via
+              // set_velocity
+              Vector2 v1_ps_new = {v1_step.x / dt, v1_step.y / dt};
+              Vector2 v2_ps_new = {v2_step.x / dt, v2_step.y / dt};
               p1.set_velocity(v1_ps_new.x, v1_ps_new.y, dt);
               p2.set_velocity(v2_ps_new.x, v2_ps_new.y, dt);
             }
@@ -232,7 +246,7 @@ void Motor::draw_debug() {
       // Use static buffer to avoid string allocation every frame
       char id_text[8];
       snprintf(id_text, sizeof(id_text), "%d", i);
-      DrawText(id_text, particles[i].get_x() - 5, particles[i].get_y() - 5, 12,
+      DrawText(id_text, particles[i].get_x() - 5, particles[i].get_y() - 5, 2,
                BLACK);
     }
   }

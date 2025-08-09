@@ -5,13 +5,16 @@
 Particle::Particle() {};
 
 Particle::Particle(float x, float y, float radius, float mass)
-    : position{ x, y }, position_prev{ x, y }, acceleration{ 0, 0 }, radius(radius), mass(mass), bounce(0.9f) {}
+    : position{x, y}, position_prev{x, y}, acceleration{0, 0}, radius(radius),
+      mass(mass), bounce(0.2f) {}
 
 Particle::Particle(Vector2 pos, float radius, float mass)
-    : position{ pos }, position_prev{ pos }, acceleration{ 0, 0 }, radius(radius), mass(mass), bounce(0.9f) {}
+    : position{pos}, position_prev{pos}, acceleration{0, 0}, radius(radius),
+      mass(mass), bounce(0.5f) {}
 
 Particle::Particle(float x, float y, float radius, float mass, float bounce)
-    : position{ x, y }, position_prev{ x, y }, acceleration{ 0, 0 }, radius(radius), mass(mass), bounce(bounce) {}
+    : position{x, y}, position_prev{x, y}, acceleration{0, 0}, radius(radius),
+      mass(mass), bounce(bounce) {}
 
 Particle::~Particle() {}
 
@@ -36,8 +39,8 @@ void Particle::draw() {
 
 // compute acceleration using a=F/m
 void Particle::accelerate(float force_x, float force_y) {
-  acceleration.x = force_x / mass;
-  acceleration.y = force_y / mass;
+  acceleration.x += force_x / mass;
+  acceleration.y += force_y / mass;
 }
 
 // Set velocity by adjusting previous position for Verlet integration
@@ -46,7 +49,6 @@ void Particle::set_velocity(float v_x, float v_y, float dt) {
   if (dt < 0.001f) {
     return;
   }
-
   position_prev.x = position.x - (v_x * dt);
   position_prev.y = position.y - (v_y * dt);
 }
@@ -57,12 +59,14 @@ void Particle::add_velocity(float scale, float dt) {
 }
 
 float Particle::get_velocity_x(float dt) {
-  if (dt <= 1e-6f) return 0.0f;
+  if (dt <= 1e-6f)
+    return 0.0f;
   return (position.x - position_prev.x) / dt;
 }
 
 float Particle::get_velocity_y(float dt) {
-  if (dt <= 1e-6f) return 0.0f;
+  if (dt <= 1e-6f)
+    return 0.0f;
   return (position.y - position_prev.y) / dt;
 }
 
@@ -71,7 +75,8 @@ Vector2 Particle::get_velocity(float dt) {
 }
 
 Vector2 Particle::get_direction(float dt) {
-  if (dt <= 1e-6f) return Vector2{0.0f, 0.0f};
+  if (dt <= 1e-6f)
+    return Vector2{0.0f, 0.0f};
   return Vector2Scale(Vector2Subtract(position, position_prev), 1.0f / dt);
 }
 
